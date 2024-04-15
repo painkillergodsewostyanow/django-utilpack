@@ -1,5 +1,5 @@
 ## django-filters:
-[ru_plur_morph.py](filters%2Fru_plur_morph.py) - Фильтр, который позволяет указать три окончания слова, и определяет нужное в зависимости от количества сущностей.
+[ru_plur_morph.py](ru_plur_morph.py) - Фильтр, который позволяет указать три окончания слова, и определяет нужное в зависимости от количества сущностей.
 ```html
 <ul>
   <li>{{count_course_part}} разде{{ count_course_part|ru_plur_morph:"л,ла,лов" }}</li>
