@@ -1,6 +1,6 @@
 ## decorators
 
-[access_decorator.py](access_decorator.py) - В django есть декоратор @login_required который перед выполнением обработчика, проверят авторизован ли пользователь, если нет, то редиректит его на страницу авторизации, данный же декоратор выполняет тот же функционал, но условие, и действие определяете вы сами. [AspirantDrago](https://github.com/AspirantDrago)
+[access_decorator.py](access_decorator.py) - В django есть декоратор @login_required который перед выполнением обработчика, проверят авторизован ли пользователь, если нет, то редиректит его на страницу авторизации, данный же декоратор выполняет тот же функционал, но условие, и действие определяете вы сами. За идею по улучшению спасибо [AspirantDrago](https://github.com/AspirantDrago)
 
 ```python
 from access_decorator import right_required
