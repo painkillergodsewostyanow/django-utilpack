@@ -10,3 +10,4 @@ def check_ip_match_the_masks(ip, masks):
     for mask in masks:
         if check_ip_match_the_mask(ip, mask):
             return True
+    return False
