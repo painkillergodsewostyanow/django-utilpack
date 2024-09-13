@@ -3,7 +3,6 @@ from django.db.models import Q
 
 
 class ParamSearch:
-
     OPERATORS_MAP = {
         ' != ': 'ne',
         ' == ': 'eq',
@@ -16,7 +15,7 @@ class ParamSearch:
         ' like ': 'icontains'
     }
 
-    def __init__(self, available_name_match: dict, available_operator: list):
+    def __init__(self, available_name_match: dict, available_operator: tuple or list):
         self.AVAILABLE_NAME_MATCH = available_name_match
         self.AVAILABLE_OPERATORS = available_operator
 
@@ -35,14 +34,16 @@ class ParamSearch:
 
         return None, None, None, "Не удалось распознать условие"
 
-    def parse_query(self, query: str) -> tuple:
+    def __parse_query(self, query: str) -> tuple:
         """Парсит строку запроса в объект Q"""
         err_lst = []
-        split_pattern = r'\s+(AND|OR)\s+'
+        split_pattern = r'\s+(AND|OR)\s+'  # Разделяем по AND и OR
         query_parts = re.split(split_pattern, query, flags=re.IGNORECASE)
+
         q_objects = Q()
         exclude_objects = Q()
-        current_operator = None
+        current_operator = None  # Определяет текущий оператор (AND/OR)
+        current_q = None  # Временный Q объект для обработки группировок
 
         for part in query_parts:
             if part.upper() in ('AND', 'OR'):
@@ -59,16 +60,17 @@ class ParamSearch:
                 if q_object is None:
                     continue
 
-                if isinstance(q_object, dict) and 'exclude' in q_object:
-                    if current_operator == 'OR':
-                        exclude_objects |= q_object['exclude']
-                    else:
-                        exclude_objects &= q_object['exclude']
+                # Обработка операторов AND/OR
+                if current_q is None:
+                    current_q = q_object  # Инициализация первой группы Q-объектов
                 else:
                     if current_operator == 'OR':
-                        q_objects |= q_object
+                        current_q |= q_object  # Логика OR: добавляем к текущему Q через | (ИЛИ)
                     else:
-                        q_objects &= q_object
+                        current_q &= q_object  # Логика AND: добавляем через & (И)
+
+        if current_q is not None:
+            q_objects &= current_q  # Добавляем итоговую группу условий к общему Q-объекту
 
         return q_objects, exclude_objects, err_lst
 
@@ -80,21 +82,32 @@ class ParamSearch:
             err_lst.append(f"Поле {field} не найдено")
             return None
 
-        if operator in ('eq', 'ne', 'in', 'not_in'):
-            if operator == 'eq':
-                return Q(**{field_m: value})
-            elif operator == 'ne':
-                return {'exclude': Q(**{field_m: value})}
-            elif operator == 'in':
-                value_list = value.split(',')
-                return Q(**{f"{field_m}__in": value_list})
-            elif operator == 'not_in':
-                value_list = value.split(',')
-                return {'exclude': Q(**{f"{field_m}__in": value_list})}
-        else:
-            return Q(**{f"{field_m}__{operator}": value})
+        try:
+            if operator in ('eq', 'ne', 'in', 'not_in'):
+                if operator == 'eq':
+                    return Q(**{field_m: value})
+                elif operator == 'ne':
+                    return ~Q(**{field_m: value})
+                elif operator == 'in':
+                    value_list = value.split(',')
+                    return Q(**{f"{field_m}__in": value_list})
+                elif operator == 'not_in':
+                    value_list = value.split(',')
+                    return ~Q(**{f"{field_m}__in": value_list})
+            else:
+                return Q(**{f"{field_m}__{operator}": value})
+        except Exception as e:
+            err_lst.append(f"Ошибка при создании Q-объекта для поля '{field_m}': {str(e)}")
+            return None
 
     def __match_field_name(self, field: str) -> str:
         """Возвращает правильное имя поля или None, если поле не найдено"""
         return self.AVAILABLE_NAME_MATCH.get(field)
 
+    def search(self, queryset, query):
+        q_objects, exclude_objects, err_lst = self.__parse_query(query)
+        if err_lst:
+            return queryset.none(), err_lst
+
+        filtered_queryset = queryset.filter(q_objects).exclude(exclude_objects).distinct()
+        return filtered_queryset, err_lst
