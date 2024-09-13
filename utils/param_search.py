@@ -20,7 +20,7 @@ class ParamSearch:
         self.AVAILABLE_NAME_MATCH = available_name_match
         self.AVAILABLE_OPERATORS = available_operator
 
-    def parse_condition(self, condition: str) -> tuple:
+    def __parse_condition(self, condition: str) -> tuple:
         """Разбирает условие и возвращает кортеж (поле, оператор, значение, ошибка)"""
         if not any(oper in condition for oper in self.OPERATORS_MAP):
             return None, None, None, f"Неверный оператор в условии: '{condition}'"
@@ -48,13 +48,13 @@ class ParamSearch:
             if part.upper() in ('AND', 'OR'):
                 current_operator = part.upper()
             else:
-                field, operator, value, err = self.parse_condition(part)
+                field, operator, value, err = self.__parse_condition(part)
 
                 if err:
                     err_lst.append(err)
                     continue
 
-                q_object = self.create_q_object(field, operator, value, err_lst)
+                q_object = self.__create_q_object(field, operator, value, err_lst)
 
                 if q_object is None:
                     continue
@@ -72,9 +72,9 @@ class ParamSearch:
 
         return q_objects, exclude_objects, err_lst
 
-    def create_q_object(self, field: str, operator: str, value: str, err_lst: list):
+    def __create_q_object(self, field: str, operator: str, value: str, err_lst: list):
         """Создает объект Q на основе поля, оператора и значения"""
-        field_m = self.match_field_name(field)
+        field_m = self.__match_field_name(field)
 
         if not field_m:
             err_lst.append(f"Поле {field} не найдено")
@@ -94,7 +94,7 @@ class ParamSearch:
         else:
             return Q(**{f"{field_m}__{operator}": value})
 
-    def match_field_name(self, field: str) -> str:
+    def __match_field_name(self, field: str) -> str:
         """Возвращает правильное имя поля или None, если поле не найдено"""
         return self.AVAILABLE_NAME_MATCH.get(field)
 
