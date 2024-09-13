@@ -8,7 +8,7 @@ from django.views import View
 class CustomExportCsvView(View):
     """
     Класс для настраиваемого экспорта данных в csv
-    Для минимальной работы переопределите методы get_column_names/trans_obj_to_row,
+    Для минимальной работы переопределите методы get_column_names, trans_obj_to_row
     и вызовите export в любом HTTP-методе на выбор
     """
     encoding = 'utf-8-sig'
@@ -58,8 +58,8 @@ class CustomExportCsvView(View):
 class LazyExportCsvView(View):
     """
     'Ленивый' экспорт. Для минимальной работы необходимо указать queryset или переопределить get_queryset.
-    :param fields указываются импортируемые поля
-    :param filename / get_filename желаемое имя файла
+    :param fields указываются импортируемые поля. Необязательно
+    :param filename / get_filename желаемое имя файла. Необязательно
     """
     delimiter = ';'
     encoding = 'utf-8-sig'
