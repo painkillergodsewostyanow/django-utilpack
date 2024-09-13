@@ -58,13 +58,7 @@ AVAILABLE_NAME_MATCH = {
 AVAILABLE_OPERATORS = ('!=', '==', 'not in', 'in', '>', '<', '>=', '<=', 'like')
 
 def search(search_query, query):
-    qs = ParamSearch(AVAILABLE_NAME_MATCH, AVAILABLE_OPERATORS)
-    q_, q_ex, err = qs.parse_query(search_query)
-    try:
-        query = query.filter(q_).exclude(q_ex)
-    except ValueError as e:
-        err.append(e)
-
+    query, err = ParamSearch(self.AVAILABLE_NAME_MATCH, self.AVAILABLE_OPERATORS).search(query, search_query)
     return query, err
 
 
