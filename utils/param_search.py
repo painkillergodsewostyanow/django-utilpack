@@ -82,23 +82,20 @@ class ParamSearch:
             err_lst.append(f"Поле {field} не найдено")
             return None
 
-        try:
-            if operator in ('eq', 'ne', 'in', 'not_in'):
-                if operator == 'eq':
-                    return Q(**{field_m: value})
-                elif operator == 'ne':
-                    return ~Q(**{field_m: value})
-                elif operator == 'in':
-                    value_list = value.split(',')
-                    return Q(**{f"{field_m}__in": value_list})
-                elif operator == 'not_in':
-                    value_list = value.split(',')
-                    return ~Q(**{f"{field_m}__in": value_list})
-            else:
-                return Q(**{f"{field_m}__{operator}": value})
-        except Exception as e:
-            err_lst.append(f"Ошибка при создании Q-объекта для поля '{field_m}': {str(e)}")
-            return None
+        if operator in ('eq', 'ne', 'in', 'not_in'):
+            if operator == 'eq':
+                return Q(**{field_m: value})
+            elif operator == 'ne':
+                return ~Q(**{field_m: value})
+            elif operator == 'in':
+                value_list = value.replace(" ", "").split(',')
+                return Q(**{f"{field_m}__in": value_list})
+            elif operator == 'not_in':
+                value_list = value.split(',')
+                return ~Q(**{f"{field_m}__in": value_list})
+        else:
+            return Q(**{f"{field_m}__{operator}": value})
+
 
     def __match_field_name(self, field: str) -> str:
         """Возвращает правильное имя поля или None, если поле не найдено"""
