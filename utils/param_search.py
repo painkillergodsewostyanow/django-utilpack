@@ -46,7 +46,7 @@ class ParamSearch:
         current_q = None  # Временный Q объект для обработки группировок
 
         for part in query_parts:
-            if part.upper() in ('AND', 'OR'):
+            if part in ('AND', 'OR', 'or', 'and'):
                 current_operator = part.upper()
             else:
                 field, operator, value, err = self.__parse_condition(part)
